@@ -51,7 +51,7 @@ if __name__ == "__main__":
         epilog= 'example: python3 renamePlex.py --name my.favorite.show.year'
         )
     parser.add_argument('--name', type = str,
-                        help = 'name of show (year optional) with periods, e.g. My.Favorite.Show.Year',
+                        help = 'name of show (year optional) with periods, e.g. My.Favorite.Show.2020',
                         required = True),
     parser.add_argument('--lang', type = str,
                         help = 'language code for subtitle files (optional argument)')
