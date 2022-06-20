@@ -3,6 +3,12 @@ Created on 2022-06-16
 
 Authors: Poaq and P2
 """
+#%%
+# Potential upgrades pseudocode
+# --------------------------- #
+
+# clean up counter implementation
+
 
 #%%
 
@@ -42,43 +48,97 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(
         description='Rename files for Plex',
-        epilog= 'example: python3 renamePlex.py --name my.favorite.show --year 2000 --ext mkv'
+        epilog= 'example: python3 renamePlex.py --name my.favorite.show.year'
         )
     parser.add_argument('--name', type = str,
-                        help = 'name of show with periods, e.g. My.Favorite.Show',
-                        required = True)
-    parser.add_argument('--year', type = str,
-                        help = 'year of show start',
-                        required = True)
-    parser.add_argument('--ext', type = str,
-                        help = 'enter file extension',
-                        required = True)
+                        help = 'name of show (year optional) with periods, e.g. My.Favorite.Show.Year',
+                        required = True),
+    parser.add_argument('--lang', type = str,
+                        help = 'language code for subtitle files (optional argument)')
     args = parser.parse_args()
 
+#%%
+# Functions
+# --------------- #
+
+def rename_episode(file, season, episode):
+    episode_str = 'E' + str(episode).zfill(2)
+    season_str = 'S' + str(season).zfill(2)
+    
+    # print('{}.{}{}{}'.format(
+    #     args.name, season_str, episode_str, os.path.splitext(file)[1])
+    #     )
+    os.rename(file, '{}.{}{}{}'.format(
+        args.name, season_str, episode_str, os.path.splitext(file)[1])
+        )
+    return None
+        
+def rename_subtitle(file, season, episode, language):
+    episode_str = 'E' + str(episode).zfill(2)
+    season_str = 'S' + str(season).zfill(2)
+    
+    os.rename(file, '{}.{}{}.{}{}'.format(
+        args.name, season_str, episode_str, language, os.path.splitext(file)[1])
+        )
+    return None    
 
 #%%
+# Rename folders
+# --------------- #
+
+q = 1
+for it in os.scandir(os.getcwd()):
+    if it.is_dir():
+        new_name = 'Season ' + str(q).zfill(2)
+        # print(new_name)
+        os.rename(it, new_name)
+        q += 1
+     # else do nothing
+
+#%%
+# Rename episodes and subs
+# ---------------------- #
+
+# Set up valid file extensions -- include subtitles
+valid_extensions = ['.mkv', '.mp4', '.mov']
+sub_extensions = ['.srt']
+# print(valid_extensions)
+
+# Begin renaming loop
 i = 1
 for it in os.scandir(os.getcwd()):
-    # if i > args.seasons: # this is unneeded if you are guaranteeing that all folders are season folders
-    #     break
+    # find subdirectories in current directory
+
     if it.is_dir():
         # goes into season folder
         os.chdir(it.path)
 
         j = 1
+        k = 1
         for file in os.listdir():
-            # goes through all flies in the season folder
+            # print(os.path.splitext(file)[1])
+            # goes through all files in folder
             
-            if file.endswith(args.ext):
-                episode_str = 'E' + str(j).zfill(2)
-                season_str = 'S' + str(i).zfill(2)
-                name = '.'.join([args.name, args.year, season_str, episode_str, args.ext])
-                # print(name) # just to test
-                os.rename(file, name)
+            if os.path.splitext(file)[1] in valid_extensions:
+                # only select files with valid extensions
+                
+                rename_episode(file, i, j)
+                
                 j += 1
+            # else skip file
+                
+            if os.path.splitext(file)[1] in sub_extensions:
+                # only select sub files
+                
+                rename_subtitle(file, i, k, args.lang)
+                
+                k += 1
+            # else skip the file
+            
         os.chdir('../')
         i += 1
     # else check next dir
+
 
     # indentions are dumb ways to end code lines
 
